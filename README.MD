@@ -1,10 +1,10 @@
 # Elo ranking
 
-##About
+## About
 
 Gets average ELO rating for team.
 
-##Installation
+## Installation
 
 1. Clone repository
 2. Add file `eloranking/src` to your autoload.
