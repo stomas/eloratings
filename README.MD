@@ -2,7 +2,7 @@
 
 ## About
 
-Gets average ELO rating for team.
+Gets average ELO rating for team. Data got from: http://clubelo.com/ API.
 
 ## Installation
 
