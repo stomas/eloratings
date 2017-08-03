@@ -82,6 +82,10 @@ class Elo
             $sum += (float) $eloRating[4];
         }
 
+        if(count($filteredResults) == 0){
+            return 0;
+        }
+
         return $sum / count($filteredResults);
     }
 
