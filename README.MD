@@ -10,3 +10,6 @@ Gets average ELO rating for team. Data got from: http://clubelo.com/ API.
 2. Add file `eloranking/src` to your autoload.
 3. `Stomas\EloRanking\Elo::getElo('Newcastle');` Command to get elo rating for team.
 
+### TODO
+
+Try to get ELO here http://www.soccer-rating.com/ranking.php
