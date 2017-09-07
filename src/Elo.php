@@ -2,7 +2,9 @@
 
 use DateTime;
 use GuzzleHttp\Client;
+use Illuminate\Support\Facades\Cache;
 use League\Csv\Reader;
+use Stomas\Footballdataparser\Models\Team;
 
 /**
  * Class Elo
@@ -33,15 +35,86 @@ class Elo
      */
     public static function getElo($team, $year = null)
     {
+        if(Cache::has($team)) {
+            $team = Cache::get($team);
+        } else {
+            $teamTemp = Team::search($team)->get();
 
-        self::initYear($year);
-        self::initTeam($team);
+            if(count($teamTemp) > 0){
+                Cache::forever($team, $teamTemp->first());
+            }
 
-        $filtered_array = self::getFilteredResults();
+            $team = Cache::get($team);
+        }
+        if($team){
+            return $team->elorating;
+        }
 
-        $average = self::getAverageElo($filtered_array);
+        return 0;
+    }
 
-        return $average;
+    public static function getTeamsFromSearches($matchName){
+        $teams = explode(" v ", $matchName);
+
+        if(Cache::has(trim($teams[0]))){
+            $homeTeam = Cache::get(trim($teams[0]));
+        } else {
+            $homeTeam = Team::search(trim($teams[0]))->get();
+
+            Cache::forever(trim($teams[0]), $homeTeam->first());
+
+            $homeTeam = Cache::get(trim($teams[0]));
+
+        }
+
+        if(Cache::has(trim($teams[1]))){
+            $awayTeam = Cache::get(trim($teams[1]));
+        } else {
+            $awayTeam = Team::search(trim($teams[1]))->get();
+
+            Cache::forever(trim($teams[1]), $awayTeam->first());
+
+            $awayTeam = Cache::get(trim($teams[1]));
+        }
+
+        return $homeTeam->team . ' v ' . $awayTeam->team;
+    }
+
+    public static function getEloDifferenceFromMatchName($mathcName){
+        $teams = explode(" v ", $mathcName);
+
+        if(count($teams) == 2){
+            $homeTeam = self::getElo(trim($teams[0]));
+            $awayTeam = self::getElo(trim($teams[1]));
+
+            if($homeTeam > 0 && $awayTeam > 0){
+                return $homeTeam - $awayTeam;
+            }
+        }
+
+        return 0;
+    }
+
+    public static function getEloSystemForMatch($matchName){
+        return 1 / (pow(10, -(self::getEloDifferenceFromMatchName($matchName)/400)) + 1);
+    }
+
+    public static function getMySystemForMatch($matchName){
+        $teams = explode(" v ", $matchName);
+
+        if(count($teams) == 2){
+            $homeTeam = self::getElo(trim($teams[0]));
+            $awayTeam = self::getElo(trim($teams[1]));
+
+            if($homeTeam > 0 && $awayTeam > 0){
+                return 1 / (pow(10, -(self::getEloDifferenceFromMatchName($matchName)/400)) + 1) * $homeTeam / $awayTeam;
+            }
+        }
+    }
+
+    public static function ELODIfference($match)
+    {
+        return $match->HomeTeamELO - $match->AwayTeamELO;
     }
 
     /**
@@ -110,5 +183,7 @@ class Elo
             self::$year = $year;
         }
     }
+
+
 
 }
